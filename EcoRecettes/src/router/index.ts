@@ -17,6 +17,22 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresGuest: true }
   },
 
+  // Dashboard principal (après connexion)
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('../views/Dashboard.vue'),
+    meta: { requiresAuth: true }
+  },
+
+  // Page Settings
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('../views/Settings.vue'),
+    meta: { requiresAuth: true }
+  },
+
   // Layout principal avec onglets (protégé)
   {
     path: '/tabs',
@@ -45,18 +61,18 @@ const routes: Array<RouteRecordRaw> = [
     ]
   },
 
-  // Route par défaut
+  // Route par défaut - redirige vers Dashboard après connexion
   {
     path: '/',
     redirect: () => {
-      return '/tabs/stock'
+      return '/dashboard'
     }
   },
 
-  // 404 - Redirection vers stock
+  // 404 - Redirection vers Dashboard
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/tabs/stock'
+    redirect: '/dashboard'
   }
 ]
 
@@ -77,7 +93,7 @@ router.beforeEach(async (to, from, next) => {
       await authStore.checkAuthState()
     }
 
-    const isAuthenticated = authStore.isAuthenticated  // Pas de parenthèses - c'est un getter !
+    const isAuthenticated = authStore.isAuthenticated  // Getter Pinia
     const requiresAuth = to.meta.requiresAuth
     const requiresGuest = to.meta.requiresGuest
 
@@ -92,16 +108,16 @@ router.beforeEach(async (to, from, next) => {
 
     // Si la route est pour les invités et l'utilisateur est connecté
     if (requiresGuest && isAuthenticated) {
-      console.log('✅ Redirection vers stock - déjà connecté')
-      next({ path: '/tabs/stock' })
+      console.log('✅ Redirection vers dashboard - déjà connecté')
+      next({ path: '/dashboard' })
       return
     }
 
     // Route par défaut selon l'état de connexion
     if (to.path === '/') {
       if (isAuthenticated) {
-        console.log('🏠 Redirection vers stock depuis /')
-        next({ path: '/tabs/stock' })
+        console.log('🏠 Redirection vers dashboard depuis /')
+        next({ path: '/dashboard' })
       } else {
         console.log('🔐 Redirection vers login depuis /')
         next({ name: 'Login' })
